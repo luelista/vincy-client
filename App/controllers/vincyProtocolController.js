@@ -1,0 +1,176 @@
+// vincy command-line client
+
+var url = require("url"),
+    BinaryBuffer = require("binaryBuffer"),
+    tls = require("tls"),
+    net = require("net"),
+    fs = require("fs");
+
+var userVersion = "0.0.1", protoVersion = "000001"; 
+var userAgent = "vincy-cli "+userVersion+"; "+require("os").type()+"; "+require("os").hostname();
+
+
+
+function connect(server, cb) {
+  if (!server.url) {
+    console.log("Please configure a URL to connect to.\nFormat: vincy://username:password@server:port"); process.exit(111);
+  }
+  console.log("Connecting to "+server.url.hostname+":"+server.url.port);
+  var stream = tls.connect({
+    port: server.url.port, host: server.url.hostname,
+    ca: server.ca,
+    servername: "vincy-server"
+  }, function() {
+    var bin = new BinaryBuffer(stream);
+    stream.write(new Buffer("VINCY-"+protoVersion, "ascii"));
+    BinaryBuffer.writeVbStr(stream, userAgent, "ascii");
+    bin.request(16, function(serverUa) {
+      server.serverVersion = serverUa.toString("ascii",0,12);
+      server.serverFlags = serverUa.readUInt32BE(12);
+      console.log("Server version: "+ server.serverVersion, "flags="+server.serverFlags," Now authenticating...");
+      if ((server.serverFlags & 0x04) == 0x04) {
+        BinaryBuffer.writeVbStr(stream, App.config.clientKey, "ascii");
+      }
+      
+      stream.write(new Buffer(2).fill(0)); //reserved
+      BinaryBuffer.writeVbStr(stream, server.url.auth, "ascii");
+      bin.request("word", function(authResponse) {
+        if (authResponse == 0x00) {
+          cb(null, stream, bin);
+        } else {
+          bin.request(authResponse, function(authErrMsg) {
+            console.log("Auth error: "+authErrMsg);
+            cb("Auth error: "+authErrMsg, null, null);
+          });
+        }
+      })
+      
+      
+    })
+  })
+  return stream;
+}
+
+function listHosts(server, cb) {
+  connect(server, function(err, stream, bin) {
+    if (err) { server.error=err; cb(err,null); return; }
+    BinaryBuffer.writeWord(stream, 0x01);  // 0x01 = command ListHosts
+    BinaryBuffer.writeVbStr(stream, "");
+    bin.request(4, function(res) {
+      var resLen = res.readUInt16BE(2);
+      bin.request(resLen, function(hostlist) {
+        cb(null, hostlist.toString());
+        server.error = null;
+      })
+    })
+  }).on("error", function(err) {
+    server.error = ""+err;
+    cb(err, null);
+  });
+}
+
+function wakeOnLan(server, hostId, cb) {
+  connect(server, function(err, stream, bin) {
+    if (err) { cb(err,false); return; }
+    BinaryBuffer.writeWord(stream, 0x03);   // 0x03 = command WakeOnLan
+    BinaryBuffer.writeVbStr(stream, hostId);
+    bin.request("word", function(errLen) {
+      if (errLen > 0) {
+        bin.request(errLen, function(err) {
+          console.log("ERROR: "+err);
+          cb(""+err, false);
+        });
+      } else {
+        cb(null, true);
+      }
+    });
+  }).on("error", function(err) {
+    server.error = ""+err;
+    cb(err, false);
+  });
+}
+
+function connectHost(server, hostId, cb) {
+  
+  var somePort = 49152+ (stringHashCode(hostId)%5000);
+  var connection = { port : somePort, status: "Listening" };
+  
+  var listener = net.createServer(function(localStream) {
+    localStream.pause();
+    
+    //localStream.on("data", function(buf) { console.log("Data from vnc:",buf,""+buf) });
+    var proxyStream = connect(server, function(err, stream, bin) {
+      if (err) { cb(hostId, err); return; }
+      localStream.on("end", function() {
+        cb(hostId, "Local stream closed");
+      });
+      //stream.on("data", function(buf) { console.log("Data from server:",buf,""+buf) });
+      BinaryBuffer.writeWord(stream, 0x02);   // 0x02 = command ConnectVNC
+      BinaryBuffer.writeVbStr(stream, hostId);
+      bin.request("word", function(errLen) {
+        if (errLen > 0) {
+          bin.request(errLen, function(err) {
+            console.log("ERROR: "+err);
+            cb(hostId, "ERROR: "+ err);
+          });
+          return;
+        }
+        
+        cb(hostId, true);
+        
+        bin.stopListening();
+
+        localStream.write(bin.buffer);
+        
+        localStream.pipe(stream);
+        stream.pipe(localStream);
+      })
+    });
+    proxyStream.on("error", function(err) {
+      console.log("ERROR in proxyConnection: "+ err);
+      cb(hostId, "ERROR in proxyConnection: "+err);
+      localStream.end();
+    })
+  }).on("error", function(err) {
+    cb(false, "Closing and re-opening Vincy might help. Error creating listener on port "+somePort+": "+err);
+  }).listen(somePort);
+  
+  connection.listener = listener;
+  
+  return connection;
+}
+
+
+
+function runVncViewer(localPort) {
+  console.log("Launching vnc viewer on local port :"+localPort+" ...");
+  switch(process.platform) {
+  case "darwin":
+    require('child_process').spawn('/usr/bin/open', ['vnc://someuser:somepw@127.0.0.1:'+localPort], {detached:true}); break;
+  case "win32":case "win64":
+    require('child_process').spawn('tvnviewer.exe', ['127.0.0.1::'+localPort], {detached:true}); break;
+  }
+}
+
+
+//--> Helper functions
+
+var stringHashCode = function(str){
+    var hash = 0;
+    if (str.length == 0) return hash;
+    for (i = 0; i < str.length; i++) {
+        char = str.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+}
+
+
+App.VincyProtocol = {
+  listHosts: listHosts,
+  connectHost: connectHost,
+  wakeOnLan: wakeOnLan,
+  runVncViewer: runVncViewer
+};
+

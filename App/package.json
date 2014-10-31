@@ -1,17 +1,18 @@
 {
-  "name": "JabberApp",
+  "name": "ViNCy",
   "main": "index.html",
   "dependencies": {
-    "node-xmpp-client": "~1.0.0-alpha15"
+    "node-xmpp-client": "~1.0.0-alpha15",
+    "underscore": "^1.7.0"
   },
-	"single-instance": true,
-	"window": {
-    "title": "JabberApp",
-		"icon": "style/AppIcon.png",
+  "single-instance": true,
+  "window": {
+    "title": "ViNCy",
+    "icon": "style/AppIcon.png",
     "width": 920,
     "height": 650,
     "min_width": 650,
     "min_height": 400,
     "toolbar": false
-	}
+  }
 }

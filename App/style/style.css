@@ -8,39 +8,28 @@ nav.top-bar { flex-grow: 0; flex-shrink: 0; }
 nav.top-bar .left { width: 230px; border-right: 1px solid #666; }
 
 #mainContainer {
-	display: flex; flex-grow: 1;
+	display: flex; flex-grow: 1; overflow: auto;
 }
-
-#conversationListView {
-	background: #eee; border-right: 1px solid #999; width: 230px; overflow-x: hidden;
-	overflow-y: auto;
-}
-#conversationList {
-	
-}
-
-#conversationList a {
-	display: block; border-bottom: 1px solid white; background-color: #eee;
-	font-size: 11pt; padding: 4px 12px; color: #333;
-}
-#conversationList a.unread {
-  background-color: #ffe; font-weight: bold;
-}
-#conversationList a:hover {
-	background-color: #dfdfff;
-}
-#conversationList a.current {
-  background-color: #0078a0; color: white;
-}
-#conversationList a.current small { color: white; }
-#conversationList a small {
-	display: block; font-size: 9pt; font-weight: normal; color: #777;
-}
-
 
 
 .f-advanced-btn a { color: #555; font-size: 10pt; }
 .f-advanced-btn { padding-bottom: 10px; }
 
 
+#drop_accountList .errmes { color: red; line-height: 1; font-size: 8pt; }
+#drop_accountList div { line-height: 1.6; padding: 6px 0; }
 
+
+a.action { width: 27px; height: 27px; padding: 4px; color: #333; display: inline-block; text-align: center; }
+a.action:hover { color: #000; background: rgba(77,77,77,0.5); display: inline-block;}
+
+#contentView .thead th { background-color: #ccc; border: 1px solid #bbb;  }
+#contentView th { background-color: #ddd; border: 1px solid #bbb; }
+#contentView { width: 100%; min-width: 700px; }
+#contentView tr.active td { background-color: Highlight; color: HighlightText; }
+
+td.actions { padding: 0; }
+
+.top-bar li.disabled a, .top-bar li.disabled a { color: #666!important; cursor: default!important; background:none!important; }
+
+#modal_hostInfo .f-info { font: 9pt "Courier New"; padding: 10px 0; }
