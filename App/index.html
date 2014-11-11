@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Vincy</title>
+	<title>Eile mit Weiles</title>
 	<link rel="stylesheet" href="style/normalize.css">
 	<link rel="stylesheet" href="style/foundation.css">
 	<link rel="stylesheet" href="style/style.css">
@@ -15,22 +15,23 @@
 	<script src="controllers/vincyProtocolController.js"></script>
 	<script src="controllers/mainWindowController.js"></script>
 	<script src="js/foundation.min.js"></script>
+  <script> App.MainWindow.loadConfig(); </script>
 </head>
 <body>
 	<div id="bodyInnerDiv">
 		<nav class="top-bar" data-topbar role="navigation"> 
 			<section class="top-bar-section"> 
-				<!-- Right Nav Section 
+				<!-- Right Nav Section -->
 				<ul class="right">
-					<li class=""><a href="#"><i class="fa fa-paperclip"></i> Send</a></li>
+					<li id="tbBtn_preferences"><a href="#"><i class="fa fa-wrench"></i><span> Preferences</span></a></li>
 				</ul>
-				--> 
+				
 				
 				<!-- Left Nav Section --> 
 				<ul class="left">
-					<li class=""><a title="Manage Accounts" href="#" data-dropdown="drop_accountList" aria-controls="drop2" aria-expanded="false"><i class="fa fa-cog"></i> Servers</a></li>
+					<li class=""><a title="Manage Accounts" href="#" data-dropdown="drop_accountList" aria-controls="drop2" aria-expanded="false"><i class="fa fa-cubes"></i><span> Servers</span></a></li>
 					
-					<li><a href="#" data-reveal-id="modal_connectionList"><i class="fa fa-eye"></i> Connections</a></li>
+					<li><a href="#" data-reveal-id="modal_connectionList"><i class="fa fa-cloud"></i><span> Connections</span></a></li>
 					
 				
 				</ul>
@@ -38,15 +39,15 @@
       
 				<!-- Left Nav Section -->
 				<ul class="left2" id="tb_hostCommands">
-					<li class="disabled"><a class="f-connect" title="Connect to selected host via VNC" href="#"><i class="fa fa-plane"></i> Connect</a></li>
+					<li class="disabled"><a class="f-connect" title="Connect to selected host via VNC" href="#"><i class="fa fa-eye"></i><span> Connect</span></a></li>
 
-					<li class="disabled"><a class="f-wakeup" title="Wake up host" href="#"><i class="fa fa-bolt"></i> Wake up</a></li>
+					<li class="disabled"><a class="f-wakeup" title="Wake up host" href="#"><i class="fa fa-power-off"></i><span> Wake up</span></a></li>
 
-					<li class="disabled"><a class="f-hostinfo" title="Show host information" href="#"><i class="fa fa-info"></i> Info</a></li>
+					<li class="disabled"><a class="f-hostinfo" title="Show host information" href="#"><i class="fa fa-info"></i><span> Info</span></a></li>
 				</ul>
 			</section>
 			
-			<div id="drop_accountList" data-dropdown-content class="f-dropdown content" aria-hidden="true" tabindex="-1">
+			<div id="drop_accountList" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
 			  <div id="accountList"></div>
 				
 				<a href="#" class="button small secondary" id="accountList_addAccount"><i class="fa fa-sign-in"></i> Add Account</a>
@@ -69,8 +70,11 @@
 		  <div class="row">
 		    <div class="small-12 columns">
 		      <h3>Add account</h3>
-			
+	
     			<div data-alert class="alert-box alert">
+    			  <span>An error has occured.</span><a href="#" class="close">&times;</a>
+    			</div>
+    			<div data-alert class="alert-box info">
     			  <span>An error has occured.</span><a href="#" class="close">&times;</a>
     			</div>
 		    </div>
@@ -86,16 +90,27 @@
 		  <div class="row">
 		    <div class="small-6 columns">
 		      <label>Username
-		        <input type="text" class="f-username" placeholder="janedoe" required />
+		        <input type="text" class="f-username" placeholder="(use default)" />
 		      </label>
 		    </div>
-		    <div class="small-6 columns">
+		    <div class="small-5 columns">
 		      <label>Password
-		        <input type="password" class="f-password" required />
+		        <input type="password" class="f-password" />
+		      </label>
+		    </div>
+        <div class="small-1 columns">
+          <a href="#" class="f-reveal-password button postfix"><i class="fa fa-eye"></i></a>
+        </div>
+		  </div>
+
+		  <div class="row">
+		    <div class="small-12 columns">
+		      <label>Fingerprint
+		        <input type="email" class="f-fingerprint" placeholder="(will be filled automatically)"  />
 		      </label>
 		    </div>
 		  </div>
-		  
+      
 		  <div class="row">
 		    <div class="small-12 columns">
 		      <a href="#" class="button success f-ok-btn"><i class="fa fa-check"></i> OK</a>
@@ -120,10 +135,25 @@
 
 		  <div class="row">
 		    <div class="small-6 columns">
-		      <label>Default Nickname<input type="text" class="f-nickname"  /></label>
+		      <label>Default Username<input type="text" class="f-username"  /></label>
 		    </div>
-		    <div class="small-6 columns">
-		      <label>Password<input type="password" class="f-password" required /></label>
+		    <div class="small-5 columns">
+		      <label>Default Password<input type="password" class="f-password" required /></label>
+		    </div>
+        <div class="small-1 columns">
+          <a href="#" class="f-reveal-password button postfix"><i class="fa fa-eye"></i></a>
+        </div>
+		  </div>
+
+		  <div class="row">
+		    <div class="small-12 columns">
+		      <label>Client Key<input type="text" class="f-clientkey" readonly  /></label>
+		    </div>
+		  </div>
+
+		  <div class="row">
+		    <div class="small-12 columns">
+		      <label>VNC Viewer Executable<input type="text" class="f-vncviewerexec" placeholder="(use default)"  /></label>
 		    </div>
 		  </div>
 

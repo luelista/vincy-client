@@ -4,7 +4,8 @@ var url = require("url"),
     BinaryBuffer = require("binaryBuffer"),
     tls = require("tls"),
     net = require("net"),
-    fs = require("fs");
+    fs = require("fs"),
+    util = require("util");
 
 var userVersion = "0.0.1", protoVersion = "000001"; 
 var userAgent = "vincy-cli "+userVersion+"; "+require("os").type()+"; "+require("os").hostname();
@@ -13,14 +14,24 @@ var userAgent = "vincy-cli "+userVersion+"; "+require("os").type()+"; "+require(
 
 function connect(server, cb) {
   if (!server.url) {
-    console.log("Please configure a URL to connect to.\nFormat: vincy://username:password@server:port"); process.exit(111);
+    cb({conError:"Please configure a URL to connect to.\nFormat: vincy://username:password@server:port"},null,null);
   }
   console.log("Connecting to "+server.url.hostname+":"+server.url.port);
   var stream = tls.connect({
     port: server.url.port, host: server.url.hostname,
-    ca: server.ca,
+    rejectUnauthorized: false,
     servername: "vincy-server"
   }, function() {
+    var cert = stream.getPeerCertificate();
+    if (!server.fingerprint) {
+      server.fingerprint = cert.fingerprint;
+      cb({conWarning:"New unknown server fingerprint stored. Click OK to continue."}, null, null); stream.end();
+      return;
+    }
+    if (cert.fingerprint != server.fingerprint) {
+      cb({conError:"POSSIBLE MITM ATTACK! Certificate fingerprint does not match."}, null, null); stream.end();
+      return;
+    }
     var bin = new BinaryBuffer(stream);
     stream.write(new Buffer("VINCY-"+protoVersion, "ascii"));
     BinaryBuffer.writeVbStr(stream, userAgent, "ascii");
@@ -33,14 +44,16 @@ function connect(server, cb) {
       }
       
       stream.write(new Buffer(2).fill(0)); //reserved
-      BinaryBuffer.writeVbStr(stream, server.url.auth, "ascii");
+      var auth = server.getAuth();
+      console.log("auth:",auth)
+      BinaryBuffer.writeVbStr(stream, auth, "ascii");
       bin.request("word", function(authResponse) {
         if (authResponse == 0x00) {
           cb(null, stream, bin);
         } else {
           bin.request(authResponse, function(authErrMsg) {
             console.log("Auth error: "+authErrMsg);
-            cb("Auth error: "+authErrMsg, null, null);
+            cb({conError:"Auth error: "+authErrMsg}, null, null);
           });
         }
       })
@@ -60,11 +73,9 @@ function listHosts(server, cb) {
       var resLen = res.readUInt16BE(2);
       bin.request(resLen, function(hostlist) {
         cb(null, hostlist.toString());
-        server.error = null;
       })
     })
   }).on("error", function(err) {
-    server.error = ""+err;
     cb(err, null);
   });
 }
@@ -90,10 +101,10 @@ function wakeOnLan(server, hostId, cb) {
   });
 }
 
-function connectHost(server, hostId, cb) {
+function connectHost(server, hostId, mode, remotePort, cb) {
   
   var somePort = 49152+ (stringHashCode(hostId)%5000);
-  var connection = { port : somePort, status: "Listening" };
+  var connection = { port : somePort, remotePort: remotePort, status: "Listening" };
   
   var listener = net.createServer(function(localStream) {
     localStream.pause();
@@ -105,8 +116,8 @@ function connectHost(server, hostId, cb) {
         cb(hostId, "Local stream closed");
       });
       //stream.on("data", function(buf) { console.log("Data from server:",buf,""+buf) });
-      BinaryBuffer.writeWord(stream, 0x02);   // 0x02 = command ConnectVNC
-      BinaryBuffer.writeVbStr(stream, hostId);
+      BinaryBuffer.writeWord(stream, mode);   // 0x02 = command ConnectVNC, 0x04 = command ConnectTCP
+      BinaryBuffer.writeVbStr(stream, hostId + (remotePort ? ":"+remotePort : ""));
       bin.request("word", function(errLen) {
         if (errLen > 0) {
           bin.request(errLen, function(err) {
@@ -132,7 +143,7 @@ function connectHost(server, hostId, cb) {
       localStream.end();
     })
   }).on("error", function(err) {
-    cb(false, "Closing and re-opening Vincy might help. Error creating listener on port "+somePort+": "+err);
+    cb(hostId, "Closing and re-opening Vincy might help. Error creating listener on port "+somePort+": "+err);
   }).listen(somePort);
   
   connection.listener = listener;
@@ -144,6 +155,14 @@ function connectHost(server, hostId, cb) {
 
 function runVncViewer(localPort) {
   console.log("Launching vnc viewer on local port :"+localPort+" ...");
+  if (App.config.prefs_vncViewerExecutable) {
+    require('child_process').spawn(
+        '/bin/sh', 
+        ['-c', util.format(App.config.prefs_vncViewerExecutable, localPort)],
+        {detached:true}
+      );
+    return;
+  }
   switch(process.platform) {
   case "darwin":
     require('child_process').spawn('/usr/bin/open', ['vnc://someuser:somepw@127.0.0.1:'+localPort], {detached:true}); break;

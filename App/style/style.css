@@ -23,9 +23,9 @@ nav.top-bar .left { width: 230px; border-right: 1px solid #666; }
 a.action { width: 27px; height: 27px; padding: 4px; color: #333; display: inline-block; text-align: center; }
 a.action:hover { color: #000; background: rgba(77,77,77,0.5); display: inline-block;}
 
+#contentView { width: 100%; min-width: 720px; }
 #contentView .thead th { background-color: #ccc; border: 1px solid #bbb;  }
 #contentView th { background-color: #ddd; border: 1px solid #bbb; }
-#contentView { width: 100%; min-width: 700px; }
 #contentView tr.active td { background-color: Highlight; color: HighlightText; }
 
 td.actions { padding: 0; }
@@ -33,3 +33,9 @@ td.actions { padding: 0; }
 .top-bar li.disabled a, .top-bar li.disabled a { color: #666!important; cursor: default!important; background:none!important; }
 
 #modal_hostInfo .f-info { font: 9pt "Courier New"; padding: 10px 0; }
+
+@media screen and (max-width: 490px) {
+	.top-bar a span { display: none; }
+	nav.top-bar .left { width: 100px; }
+	
+}

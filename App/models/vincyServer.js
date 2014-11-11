@@ -6,13 +6,26 @@
     if (obj) {
       this.url = url.parse(obj.url);
       this.key = key;
+      this.fingerprint = obj.fingerprint;
     } else {
       this.url = null;
       this.key = null;
+      this.fingerprint = null;
     }
     this.error = null;
     this.hosts = [];
     this.loading = false;
+  }
+  
+  VincyServer.prototype.getAuth = function() {
+    if (this.url&&this.url.auth) return this.url.auth;
+    return App.config.prefs_username+":"+App.config.prefs_password;
+  }
+  
+  VincyServer.prototype.setUrl = function(new_url, user, passwd) {
+    this.url = url.parse(new_url);
+    if (user && passwd)
+      this.url.auth = user+':'+passwd;
   }
   
   VincyServer.prototype.urlString = function() {
@@ -41,7 +54,7 @@
     var out = {};
     for(var i in serverList) {
       var s = serverList[i];
-      out[s.key] = { url: s.urlString() };
+      out[s.key] = { url: s.urlString(), fingerprint: s.fingerprint };
     }
     return out;
   }

@@ -1,18 +1,20 @@
 {
   "name": "ViNCy",
   "main": "index.html",
+	"version": "0.0.5",
   "dependencies": {
     "node-xmpp-client": "~1.0.0-alpha15",
     "underscore": "^1.7.0"
   },
   "single-instance": true,
   "window": {
-    "title": "ViNCy",
+    "title": "ViNCy-ng",
     "icon": "style/AppIcon.png",
     "width": 920,
     "height": 650,
-    "min_width": 650,
+    "min_width": 250,
     "min_height": 400,
-    "toolbar": false
+    "toolbar": false,
+		"show": false
   }
 }

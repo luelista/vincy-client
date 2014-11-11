@@ -12,7 +12,7 @@
 	<array>
 		<dict>
 			<key>CFBundleTypeIconFile</key>
-			<string>JabberApp.icns</string>
+			<string>Vincy.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>node-webkit App</string>
 			<key>CFBundleTypeRole</key>
@@ -40,7 +40,7 @@
 	<key>CFBundleExecutable</key>
 	<string>node-webkit</string>
 	<key>CFBundleIconFile</key>
-	<string>JabberApp.icns</string>
+	<string>Vincy.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>io.weller.max.vincy-client</string>
 	<key>CFBundleInfoDictionaryVersion</key>
