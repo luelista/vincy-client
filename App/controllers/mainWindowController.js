@@ -151,6 +151,7 @@
     $("#contentView").on("click", ".f-wakeup", self.wakeUpHost);
     $(".f-closemodal-btn").on("click", function() { $(this).closest(".reveal-modal").foundation("reveal", "close"); })
     $("#modal_addAccount .f-ok-btn").click(saveAccountInfo);
+    $("#modal_addAccount .f-trash-btn").click(deleteAccountInfo);
     $("#modal_preferences .f-ok-btn").click(savePreferences);
     $("#tbBtn_preferences").click(self.showPreferences);
     $(".f-reveal-password").click(revealPassword);
@@ -219,6 +220,7 @@
   function saveAccountInfo() {
     if (!currentEditingAccount) {
       currentEditingAccount = new App.VincyServer();
+      currentEditingAccount.key = "id" + (+new Date());
       App.servers.push(currentEditingAccount);
     }
     currentEditingAccount.fingerprint = $("#modal_addAccount .f-fingerprint").val();
@@ -226,6 +228,14 @@
                                  $("#modal_addAccount .f-username").val(),
                                  $("#modal_addAccount .f-password").val());
     //...
+    self.storeConfig();
+    self.refreshAccountList();
+    self.loadHostlists();
+    $("#modal_addAccount").foundation("reveal", "close");
+  }
+  
+  function deleteAccountInfo() {
+    delete App.servers[currentEditingAccount.key];
     self.storeConfig();
     self.refreshAccountList();
     self.loadHostlists();

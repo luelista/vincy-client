@@ -1,7 +1,7 @@
 {
   "name": "ViNCy",
   "main": "index.html",
-	"version": "0.0.5",
+	"version": "0.0.6",
   "dependencies": {
     "node-xmpp-client": "~1.0.0-alpha15",
     "underscore": "^1.7.0"
