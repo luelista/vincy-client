@@ -159,9 +159,9 @@
     var win = nw.Window.get();
     win.on("close", onExitApp);
     App.AutoUpdater.on("updateAvailable", function() { openModal("modal_autoUpdater") });
-    App.AutoUpdater.on("updateProgress", function(percentage) {
-      $("modal_autoUpdater .meter").css("width", percentage+'%');
-      $("modal_autoUpdater .msg").text(percentage+'%');
+    App.AutoUpdater.on("updateProgress", function(percentage) { //console.log("update progress",percentage)
+      $("#modal_autoUpdater .meter").css("width", percentage+'%');
+      $("#modal_autoUpdater .msg").text(percentage+'%');
     });
   }
   function revealPassword() {

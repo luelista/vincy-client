@@ -1,3 +1,5 @@
+//TODO NOW WORKING YET FOR BIG FILES
+
 (function() {
   var nw = require('nw.gui');
   var events = require('events');
@@ -5,6 +7,7 @@
   var fs=require("fs");
   var os=require("os");
   var path=require("path");
+  var unzip=require('unzip');
   
   var self = App.AutoUpdater = new events.EventEmitter();
   
@@ -32,14 +35,25 @@
   App.AutoUpdater.download = function(url) {
     self.emit("updateAvailable");
     var dlFile = os.tmpdir()+'/autoupd.zip';
+    console.log("Downloading to",dlFile);
     var output = fs.createWriteStream(dlFile);
     https.get(url, function(res) {
       var pos=0;
+      
+      
+      
+      
+      //TODO    file gets corrupted somehow ???
+      
+      
+      
+      
+      
       res.on('data', function(dat) {
         pos += dat.length;
         output.write(dat);
         try {
-          self.emit("updateProgress", pos/res.headers["Content-Length"]*100);
+          self.emit("updateProgress", pos/res.headers["content-length"]*100);
         }catch(ex){}
       });
       res.on('end', function() {
@@ -67,16 +81,18 @@
   App.AutoUpdater.unzipFile = function(file) {
     try {
       var targetDir = self.getAppDir();
-      console.log("extracting to "+targetDir);
+      console.log("extracting from "+file+" to "+targetDir);
       $("#modal_autoUpdater .f-msg").text("Extracting to "+targetDir);
-    
-      fs.createReadStream(file).pipe(unzip.Extract({ path: targetDir }))
-      .on("end", function() {
+      
+      var extractor = unzip.Extract({ path: targetDir });
+      extractor.on("close", function() {
         $("#modal_autoUpdater h3").text("Done! Please re-launch application!");
-        setTimeout(function() { nw.App.quit(); }, 3000);
+        setTimeout(function() { nw.App.quit(); }, 5000);
       });
+      fs.createReadStream(file).pipe(extractor);
     }catch(ex) {
       $("#modal_autoUpdater .f-msg").html("Failed to extract update: "+ex);
+      alert("Failed to extract update: "+ex);
     }
   }
   
