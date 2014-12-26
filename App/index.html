@@ -14,6 +14,7 @@
 	<script src="models/vincyServer.js"></script>
 	<script src="controllers/vincyProtocolController.js"></script>
 	<script src="controllers/mainWindowController.js"></script>
+	<script src="controllers/autoUpdater.js"></script>
 	<script src="js/foundation.min.js"></script>
   <script> App.MainWindow.loadConfig(); </script>
 </head>
@@ -158,6 +159,12 @@
 		  </div>
 
 		  <div class="row">
+		    <div class="small-12 columns" id="autoUpdater_info">
+		      No update information available.
+		    </div>
+		  </div>
+
+		  <div class="row">
 		    <div class="small-12 columns">
 		      <a href="#" class="button success f-ok-btn"><i class="fa fa-check"></i> OK</a>
 		      <a href="#" class="button f-closemodal-btn"><i class="fa fa-cancel"></i> Cancel</a>
@@ -203,6 +210,18 @@
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
 	
+	
+  
+	
+	<!-- Auto Update Downloading Dialog -->
+	
+	<div id="modal_autoUpdater" class="reveal-modal" data-reveal>
+    <h3><i class="fa fa-exclamation-triangle"></i> Downloading update ...</h3>
+    <div class="f-msg"></div>
+    <div class="progress round">
+      <span class="meter" style="width: 0%"></span>
+    </div>
+	</div>
 	
   
 	

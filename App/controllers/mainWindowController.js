@@ -127,6 +127,7 @@
       App.config.firstStart = false;
       self.storeConfig();
     }
+    App.AutoUpdater.check();
   }
   
   function onExitApp() {
@@ -157,6 +158,11 @@
     $(".f-reveal-password").click(revealPassword);
     var win = nw.Window.get();
     win.on("close", onExitApp);
+    App.AutoUpdater.on("updateAvailable", function() { openModal("modal_autoUpdater") });
+    App.AutoUpdater.on("updateProgress", function(percentage) {
+      $("modal_autoUpdater .meter").css("width", percentage+'%');
+      $("modal_autoUpdater .msg").text(percentage+'%');
+    });
   }
   function revealPassword() {
     var $pw=$(this).closest("form").find(".f-password");
@@ -235,7 +241,9 @@
   }
   
   function deleteAccountInfo() {
-    delete App.servers[currentEditingAccount.key];
+    if (! confirm("Are you sure?") ) return;
+    var index = App.servers.indexOf(currentEditingAccount);
+    App.servers.splice(index, 1);
     self.storeConfig();
     self.refreshAccountList();
     self.loadHostlists();
@@ -283,17 +291,23 @@
   self.loadHostlists = function() {
     App.servers.forEach(function(server) {
       server.loading=true;
-      App.VincyProtocol.listHosts(server, function(err, hostlist) {
-        server.loading=false;
-        server.error = err;
-        if (!err) {
-          server.parseHostlist(hostlist);
-        } else if(err.conError||err.conWarning) {
-          self.showEditAccount(server, err);
-        }
-        self.refreshHostlists();
+      try {
+        console.log("before listHosts",server.urlString())
+        App.VincyProtocol.listHosts(server, function(err, hostlist) {
+          server.loading=false;
+          server.error = err;
+          if (!err) {
+            server.parseHostlist(hostlist);
+          } else if(err.conError||err.conWarning) {
+            self.showEditAccount(server, err);
+          }
+          self.refreshHostlists();
+          self.refreshAccountList();
+        });
+      } catch(Ex) {
+        server.error = "Unhandled exception: "+Ex;
         self.refreshAccountList();
-      });
+      }
     });
     //self.refreshAccountList();
   }

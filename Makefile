@@ -17,7 +17,8 @@ build-win32: ViNCy-ng.nw
 	#cp ./Build/ViNCy-ng.nw ./Build/Win32/app.nw
 	cp -r ./App/* ./Build/Win32/
 	rm ./Build/Win32/nwsnapshot.exe
-	# figure out how to run nsis on mac ^^
+	wine BuildResources/Resourcer.exe -op:upd -src:"./Build/Win32/ViNCy-ng.exe" -type:icon -name:IDR_MAINFRAGE -lang:1033 -file:App/style/AppIcon.ico
+
 
 ViNCy-ng.nw:
 	cd App; zip -r ../Build/ViNCy-ng.nw *

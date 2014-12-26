@@ -1,10 +1,13 @@
 {
   "name": "ViNCy",
+  "description": "VNC proxy client",
+  "repository": "https://github.com/max-weller/vincy-client",
   "main": "index.html",
-	"version": "0.0.6",
+  "version": "0.0.6",
   "dependencies": {
     "node-xmpp-client": "~1.0.0-alpha15",
-    "underscore": "^1.7.0"
+    "underscore": "^1.7.0",
+    "unzip": "^0.1.11"
   },
   "single-instance": true,
   "window": {
@@ -15,6 +18,7 @@
     "min_width": 250,
     "min_height": 400,
     "toolbar": false,
-		"show": false
-  }
+    "show": false
+  },
+  "update_url": "https://downloads.max-weller.de/vincy-client/updates.json"
 }

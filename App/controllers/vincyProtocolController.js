@@ -16,6 +16,7 @@ function connect(server, cb) {
   if (!server.url) {
     cb({conError:"Please configure a URL to connect to.\nFormat: vincy://username:password@server:port"},null,null);
   }
+  if (!server.url.port || server.url.port < 1 || server.url.port > 65535) server.url.port = 44711;
   console.log("Connecting to "+server.url.hostname+":"+server.url.port);
   var stream = tls.connect({
     port: server.url.port, host: server.url.hostname,
@@ -60,7 +61,7 @@ function connect(server, cb) {
       
       
     })
-  })
+  });
   return stream;
 }
 
