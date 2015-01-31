@@ -5,10 +5,13 @@ var url = require("url"),
     tls = require("tls"),
     net = require("net"),
     fs = require("fs"),
-    util = require("util");
+    util = require("util"),
+    njs_crypto = require("crypto"),
+    os = require("os");
+var nw = require('nw.gui');
 
-var userVersion = "0.0.1", protoVersion = "000001"; 
-var userAgent = "vincy-cli "+userVersion+"; "+require("os").type()+"; "+require("os").hostname();
+var userVersion = "0.0.1", protoVersion = "000001";
+var userAgent = "vincy-client "+nw.App.manifest.version+"; "+os.type()+"; "+os.arch()+"; "+os.platform()+"; "+os.hostname();
 
 
 
@@ -41,9 +44,14 @@ function connect(server, cb) {
       server.serverFlags = serverUa.readUInt32BE(12);
       console.log("Server version: "+ server.serverVersion, "flags="+server.serverFlags," Now authenticating...");
       if ((server.serverFlags & 0x04) == 0x04) {
-        BinaryBuffer.writeVbStr(stream, App.config.clientKey, "ascii");
+        // new: server specific clientKey
+        // avoid that a malicious server can use the clientKey to logon to a
+        // different server the user has access to
+        var ckey = njs_crypto.createHash("sha384")
+          .update(App.config.clientKey+":"+server.fingerprint).digest("base64");
+        BinaryBuffer.writeVbStr(stream, ckey, "ascii");
       }
-      
+
       stream.write(new Buffer(2).fill(0)); //reserved
       var auth = server.getAuth();
       console.log("auth:",auth)
@@ -54,12 +62,12 @@ function connect(server, cb) {
         } else {
           bin.request(authResponse, function(authErrMsg) {
             console.log("Auth error: "+authErrMsg);
-            cb({conError:"Auth error: "+authErrMsg}, null, null);
+            cb({conError:"Auth error: "+authErrMsg+"<br>vincy-key \""+os.hostname()+"\" \""+ckey+"\""}, null, null);
           });
         }
       })
-      
-      
+
+
     })
   });
   return stream;
@@ -103,13 +111,13 @@ function wakeOnLan(server, hostId, cb) {
 }
 
 function connectHost(server, hostId, mode, remotePort, cb) {
-  
+
   var somePort = 49152+ (stringHashCode(hostId)%5000);
   var connection = { port : somePort, remotePort: remotePort, status: "Listening" };
-  
+
   var listener = net.createServer(function(localStream) {
     localStream.pause();
-    
+
     //localStream.on("data", function(buf) { console.log("Data from vnc:",buf,""+buf) });
     var proxyStream = connect(server, function(err, stream, bin) {
       if (err) { cb(hostId, err); return; }
@@ -127,13 +135,13 @@ function connectHost(server, hostId, mode, remotePort, cb) {
           });
           return;
         }
-        
+
         cb(hostId, true);
-        
+
         bin.stopListening();
 
         localStream.write(bin.buffer);
-        
+
         localStream.pipe(stream);
         stream.pipe(localStream);
       })
@@ -146,9 +154,9 @@ function connectHost(server, hostId, mode, remotePort, cb) {
   }).on("error", function(err) {
     cb(hostId, "Closing and re-opening Vincy might help. Error creating listener on port "+somePort+": "+err);
   }).listen(somePort);
-  
+
   connection.listener = listener;
-  
+
   return connection;
 }
 
@@ -158,7 +166,7 @@ function runVncViewer(localPort) {
   console.log("Launching vnc viewer on local port :"+localPort+" ...");
   if (App.config.prefs_vncViewerExecutable) {
     require('child_process').spawn(
-        '/bin/sh', 
+        '/bin/sh',
         ['-c', util.format(App.config.prefs_vncViewerExecutable, localPort)],
         {detached:true}
       );
@@ -193,4 +201,3 @@ App.VincyProtocol = {
   wakeOnLan: wakeOnLan,
   runVncViewer: runVncViewer
 };
-
