@@ -20,7 +20,7 @@
   }
 
 
-  App.AutoUpdater.check = function() {
+  App.AutoUpdater.check = function(showAnswer) {
     if (process.env.NO_UPDATE_CHECK) return;
 
     var uri = nw.App.manifest.update_url + "?version=" + nw.App.manifest.version;
@@ -35,6 +35,7 @@
           App.AutoUpdater.download(result.url);
         } else {
           $("#autoUpdater_info").html("Application is up-to-date.");
+          if (showAnswer) alert("You already have the most recent version.\n\nNewest available version: "+result.currentVersion+"\nInstalled version: "+ nw.App.manifest.version);
         }
       });
 

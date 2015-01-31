@@ -3,7 +3,7 @@
   "description": "VNC proxy client",
   "repository": "https://github.com/max-weller/vincy-client",
   "main": "index.html",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "dependencies": {
     "node-xmpp-client": "~1.0.0-alpha15",
     "underscore": "^1.7.0",

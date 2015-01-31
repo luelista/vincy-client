@@ -110,10 +110,9 @@ function wakeOnLan(server, hostId, cb) {
   });
 }
 
-function connectHost(server, hostId, mode, remotePort, cb) {
+function connectHost(server, hostId, mode, localPort, remotePort, cb) {
 
-  var somePort = 49152+ (stringHashCode(hostId)%5000);
-  var connection = { port : somePort, remotePort: remotePort, status: "Listening" };
+  var connection = { port : localPort, remotePort: remotePort, status: "Listening" };
 
   var listener = net.createServer(function(localStream) {
     localStream.pause();
@@ -152,8 +151,8 @@ function connectHost(server, hostId, mode, remotePort, cb) {
       localStream.end();
     })
   }).on("error", function(err) {
-    cb(hostId, "Closing and re-opening Vincy might help. Error creating listener on port "+somePort+": "+err);
-  }).listen(somePort);
+    cb(hostId, "Closing and re-opening Vincy might help. Error creating listener on port "+localPort+": "+err);
+  }).listen(localPort);
 
   connection.listener = listener;
 
@@ -180,19 +179,6 @@ function runVncViewer(localPort) {
   }
 }
 
-
-//--> Helper functions
-
-var stringHashCode = function(str){
-    var hash = 0;
-    if (str.length == 0) return hash;
-    for (i = 0; i < str.length; i++) {
-        char = str.charCodeAt(i);
-        hash = ((hash<<5)-hash)+char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-}
 
 
 App.VincyProtocol = {

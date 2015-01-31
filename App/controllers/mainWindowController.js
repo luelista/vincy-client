@@ -1,24 +1,24 @@
 (function() {
   var nw = require('nw.gui');
-  
+
   App.MainWindow = {};
   var self = App.MainWindow;
   App.servers = [];
-  
+
   function makeDropdownMenu(title) {
     var m = new nw.MenuItem({ label: title });
     m.submenu = new nw.Menu();
     return m;
   }
-  
+
   function initMainMenu() {
     var win = nw.Window.get();
     win.title = "ViNCy-ng " + nw.App.manifest.version;
     var nativeMenuBar = new nw.Menu({ type: "menubar" });
-    
+
     var appMenu, aIndex, accountMenu, windowMenu, wIndex,editMenu;
     var mod;
-    
+
     if (process.platform === "darwin") {
       mod = "cmd";
       nativeMenuBar.createMacBuiltin("ViNCy");
@@ -39,17 +39,23 @@
       windowMenu = nativeMenuBar.items[3].submenu; wIndex=0;
       editMenu = nativeMenuBar.items[1].submenu;
     }
-    
-    
+
+
     appMenu.insert(new nw.MenuItem({
       label: "Preferences", modifiers: mod, key: ",",
       click: function() {
         App.MainWindow.showPreferences();
       }
     }), aIndex++);
+    appMenu.insert(new nw.MenuItem({
+      label: "Check for updates", modifiers: mod, key: ",",
+      click: function() {
+        App.AutoUpdater.check(true);
+      }
+    }), aIndex++);
     appMenu.insert(new nw.MenuItem({ type: "separator" }), aIndex++);
-    
-    
+
+
     accountMenu.append(new nw.MenuItem({
       label: "Add new account ...", modifiers: mod+"-shift", key: "n",
       click: function() {
@@ -73,12 +79,19 @@
       label: "Show info", modifiers: mod, key: "i",
       click: function() { self.showHostInfo(); }
     }));
+    if (process.platform !== "darwin") {
+      accountMenu.append(new nw.MenuItem({ type: "separator" }));
+      accountMenu.append(new nw.MenuItem({
+        label: "Quit", modifiers: mod, key: "q",
+        click: function() { nw.Window.get().close(); }
+      }));
+    }
 
     editMenu.append(new nw.MenuItem({
       label: "Refresh host list", modifiers: mod, key: "r",
       click: function() { self.loadHostlists(); }
     }));
-    
+
     windowMenu.insert(new nw.MenuItem({
       label: "Inspector", modifiers: mod, key: "j",
       click: function() {
@@ -91,12 +104,12 @@
         openModal("modal_connectionList");
       }
     }), wIndex++);
-    
-    
+
+
     win.menu = nativeMenuBar;
-    
+
   }
-  
+
   self.showPreferences = function() {
     openModal("modal_preferences");
     var $m = $("#modal_preferences");
@@ -112,9 +125,9 @@
     App.config.prefs_vncViewerExecutable = $m.find(".f-vncviewerexec").val();
     $("#modal_preferences").foundation("reveal", "close");
   }
-  
-  
-  
+
+
+
   self.initApp = function() {
     initMainMenu();
     // self.loadConfig(); ...called earlier
@@ -129,14 +142,14 @@
     }
     App.AutoUpdater.check();
   }
-  
+
   function onExitApp() {
     console.log("onExitApp")
     self.storeConfig();
     var win = nw.Window.get();
     win.close(true);
   }
-  
+
   self.attachEvents = function() {
     $("#contentView").on("click", "tr", onHostlistItemClick);
     $("#accountList_addAccount").click(self.showAddAccount);
@@ -168,11 +181,11 @@
     var $pw=$(this).closest("form").find(".f-password");
     $pw.attr("type", $pw.attr("type")=="password" ? "text" : "password");
   }
-  
-  
+
+
   //-->  server/account lists
-  
-  
+
+
   self.accountListTemplate = _.template("<div data-index='<%- index %>'> \
       <i class='fa fa-<%= loading ? 'spinner fa-spin' : (error != null ? 'exclamation-triangle' : 'cube') %>' ></i>\
       <%- url.hostname  %> \
@@ -180,7 +193,7 @@
       </span>\
       </div><%= error != null ? '<div class=errmes>'+error+' (click to retry)</div>' : '' %>");
 
-  
+
   self.refreshAccountList = function() {
     var $al = $("#accountList");
     $al.html("");
@@ -189,7 +202,7 @@
       $al.append(self.accountListTemplate(d));
     }
   }
-  
+
   self.showAddAccount = function() {
     self.showAccountForm(true);
     currentEditingAccount = null;
@@ -210,7 +223,7 @@
     else if (server.error&&server.error.conWarning) $modal.find(".alert-box.info").html(server.error.conWarning).show();
     else if (server.error) $modal.find(".alert-box.info").html("<i class='fa fa-exclamation-circle' style='font-size:14pt'></i> "+server.error).show();
   }
-  
+
   self.showAccountForm = function(isNewAcc) {
     var $modal = $("#modal_addAccount");
     openModal("modal_addAccount");
@@ -220,9 +233,9 @@
     if(isNewAcc) $modal.find(".f-trash-btn").hide(); else $modal.find(".f-trash-btn").show();
     return $modal;
   }
-  
+
   var currentEditingAccount = null;
-  
+
   function saveAccountInfo() {
     if (!currentEditingAccount) {
       currentEditingAccount = new App.VincyServer();
@@ -239,7 +252,7 @@
     self.loadHostlists();
     $("#modal_addAccount").foundation("reveal", "close");
   }
-  
+
   function deleteAccountInfo() {
     if (! confirm("Are you sure?") ) return;
     var index = App.servers.indexOf(currentEditingAccount);
@@ -249,9 +262,9 @@
     self.loadHostlists();
     $("#modal_addAccount").foundation("reveal", "close");
   }
-  
+
   //--> manage host lists
-  
+
   self.hostListItemTemplate = _.template("<tr> "
     +  "<td><i class='fa fa-desktop'></i> <%- id  %></td> "
     +  "<td><i class='fa fa-circle' style='color:<%= (online ? 'green' : 'gray') %>'></i> <%= (online ? 'online' : 'n/a') %></td>"
@@ -262,11 +275,11 @@
     +  "<td class=actions><a href='#' class='action f-connect' title='Connect'><i class='fa fa-eye'></i></a> <a href='#' class='action f-wakeup' title='Wake up host'><i class='fa fa-power-off'></i></a> </td> "
     +  "</tr>");
 
-  
+
   self.hostListGroupheaderTemplate = _.template("<tr> \
       <th colspan=5><i class='fa fa-cube'></i> <%- group %> <span style=color:red;font-weight:normal;font-size:8pt;float:right><%- errMes %></span></th>\
       </tr>");
-  
+
   self.refreshHostlists = function() {
     self.selectedHost = null;    self.selectedHostServer = null; self.onHostSelected();
     var $al = $("#contentView");
@@ -287,7 +300,7 @@
       }
     }
   }
-  
+
   self.loadHostlists = function() {
     App.servers.forEach(function(server) {
       server.loading=true;
@@ -311,7 +324,7 @@
     });
     //self.refreshAccountList();
   }
-  
+
   function onHostlistItemClick() {
     if (!this || $(this).closest("TR").length==0) return;
     var $tr = $(this).closest("TR");
@@ -322,30 +335,40 @@
     console.log(self.selectedHost);
     self.onHostSelected();
   }
-  
+
   self.onHostSelected = function() {
     if(self.selectedHost) $("#tb_hostCommands li").removeClass("disabled");
                 else $("#tb_hostCommands li").addClass("disabled");
   }
-  
-  
+
+
   //--> Action Handlers
-  
+
   self.connectToHost = function() {
     connectToHost2(true);
   }
-  
+
+  var portCounter = 0;
   function connectToHost2(isVnc) {
     onHostlistItemClick.apply(this);
     if (!self.selectedHost) return;
     var host=self.selectedHost, id = self.selectedHost.id;
-    
+
     try {
       openModal("modal_connectionList");
-      
+
       if (!host.connection) {
         var firstEstab = true;
-        host.connection = App.VincyProtocol.connectHost(self.selectedHostServer, id, isVnc?0x02:0x04, isVnc?null:3398, function(hostId, msg) {
+
+        var somePort = parseInt(App.config.localPortStart);
+        if (!somePort || somePort < 1024) somePort = 49152;
+        if (App.config.localPortFromHashCode === false) {
+          somePort += ++portCounter;
+        } else {
+          somePort += stringHashCode(id)%5000;
+        }
+
+        host.connection = App.VincyProtocol.connectHost(self.selectedHostServer, id, isVnc?0x02:0x04, somePort, isVnc?null:3398, function(hostId, msg) {
           console.log("connectHost callback:",hostId, msg);
           if (hostId === false) {
             self.showErrMes(msg);
@@ -363,25 +386,25 @@
         self.refreshConnectionList();
       }
       if (isVnc) runVncViewer(host.connection.port); else alert("OK - localhost:"+host.connection.port);
-      
+
     } catch(err) {
       self.showErrMes("An exception has occured while connecting to "+id+"<br><br>"+err+"<br><br><small><pre>"+err.lineNumber+", "+err.fileName+"\n"+err.stack+"</pre></small>");
     }
   }
-  
+
   self.wakeUpHost = function() {
     onHostlistItemClick.apply(this);
     if (!self.selectedHost) return;
-    
+
     var id = self.selectedHost.id;
-    
+
     App.VincyProtocol.wakeOnLan(self.selectedHostServer, id, function(err, ok) {
       if (err) {
         self.showErrMes("An error has occured while waking up "+id+".<br><br>"+err);
       }
     });
   }
-  
+
   self.showHostInfo = function() {
     if (!self.selectedHost) return;
     openModal("modal_hostInfo");
@@ -391,39 +414,53 @@
       out += key+": "+self.selectedHost[key]+"<br>";
     $modal.find(".f-info").html(out);
     $modal.find(".f-comment").html(self.selectedHost.comment);
-    
+
   }
-  
-  
-  
+
+
+
   //--> currently open connections
-  
+
   var connectionListitemTemplate = _.template("<tr>\
   <td class=actions><a href='#' class='action f-connect' title='Connect'><i class='fa fa-plane'></i></a> <a href='#' class='action f-closeconn' title='Close connection'><i class='fa fa-close'></i></a> </td>\
   <td><%= host.connection.port %></td><td><%= server.urlViewString() %></td><td><%= host.id %></td><td><%= host.connection.status %></td>\
   </tr>")
-  
+
   self.refreshConnectionList = function() {
     var $tbl = $("#modal_connectionList table tbody").html("");
     App.servers.forEach(function(server) {
-      server.hosts.forEach(function(host) {
-        if (host.connection) {
-          $tbl.append(connectionListitemTemplate({host:host, server:server}));
+      for(var key in server.hosts) {
+        if (server.hosts.hasOwnProperty(key)) {
+          var host = server.hosts[key];
+          if (host.connection) {
+            $tbl.append(connectionListitemTemplate({host:host, server:server}));
+          }
         }
-      })
+      }
     })
   }
-  
-  
-  
-  
-  //--> Helper
-  
+
+
+
+
+  //--> Helper functions
+
+  var stringHashCode = function(str){
+      var hash = 0;
+      if (str.length == 0) return hash;
+      for (i = 0; i < str.length; i++) {
+          char = str.charCodeAt(i);
+          hash = ((hash<<5)-hash)+char;
+          hash = hash & hash; // Convert to 32bit integer
+      }
+      return hash;
+  }
+
   function openModal(id, dontTryAgain) {
     try { $("#"+id).foundation("reveal", "open"); }
     catch(ex) { if(!dontTryAgain)setTimeout(function() { openModal(id, true); },700); }
   }
-  
+
   self.showErrMes = function(str) {
     try {
       openModal("modal_error");
@@ -432,11 +469,11 @@
       alert(str);
     }
   }
-  
+
   App.getUserHome = function() {
     return process.env.HOME || process.env.USERPROFILE || process.env.HOMEPATH;
   }
-  
+
   self.loadConfig = function() {
     App.confDir = App.getUserHome() + "/.config/rs/vincy/";
     try { fs.mkdirSync(App.getUserHome() + "/.config"); fs.mkdirSync(App.getUserHome() + "/.config/rs"); fs.mkdirSync(App.confDir); }catch(Ex){}
@@ -452,7 +489,7 @@
     try {
       App.config = JSON.parse(fs.readFileSync(App.confDir+"/config.json"));
     } catch(Ex) { self.showErrMes("Could not load configuration file<br><br>"+Ex) }
-    
+
     if (App.config.bookmarks) {
       for(var i in App.config.bookmarks) {
         var server = new App.VincyServer(i, App.config.bookmarks[i]);
@@ -460,7 +497,7 @@
         App.servers.push(server);
       }
     }
-    
+
     if (!App.config.clientKey) {
       var crypt = require('crypto'), buf;
       try {
@@ -472,9 +509,9 @@
       App.config.clientKey = buf.toString('base64');
       self.storeConfig();
     }
-    
+
     var win = nw.Window.get();
-    
+
     if (App.config.mainWindow) {
       win.x = Math.max(20,parseInt(App.config.mainWindow.x,10));
       win.y = Math.max(20,parseInt(App.config.mainWindow.y,10));
@@ -482,18 +519,18 @@
       win.height = Math.max(20,parseInt(App.config.mainWindow.height,10));
     }
     win.show();
-    
+
     var out = App.VincyServer.makeJSON(App.servers);
     console.log(out);
   }
-  
+
   self.storeConfig = function() {
     var win = nw.Window.get();
     App.config.mainWindow = { x:win.x, y:win.y, width:win.width, height:win.height };
     App.config.bookmarks = App.VincyServer.makeJSON(App.servers);
     var configString = JSON.stringify(App.config, null, 2);
     fs.writeFileSync(App.confDir+"/config.json", configString);
-    
+
   }
-  
+
 })();

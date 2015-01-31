@@ -20,24 +20,24 @@
 </head>
 <body>
 	<div id="bodyInnerDiv">
-		<nav class="top-bar" data-topbar role="navigation"> 
-			<section class="top-bar-section"> 
+		<nav class="top-bar" data-topbar role="navigation">
+			<section class="top-bar-section">
 				<!-- Right Nav Section -->
 				<ul class="right">
 					<li id="tbBtn_preferences"><a href="#"><i class="fa fa-wrench"></i><span> Preferences</span></a></li>
 				</ul>
-				
-				
-				<!-- Left Nav Section --> 
+
+
+				<!-- Left Nav Section -->
 				<ul class="left">
 					<li class=""><a title="Manage Accounts" href="#" data-dropdown="drop_accountList" aria-controls="drop2" aria-expanded="false"><i class="fa fa-cubes"></i><span> Servers</span></a></li>
-					
+
 					<li><a href="#" data-reveal-id="modal_connectionList"><i class="fa fa-cloud"></i><span> Connections</span></a></li>
-					
-				
+
+
 				</ul>
-			
-      
+
+
 				<!-- Left Nav Section -->
 				<ul class="left2" id="tb_hostCommands">
 					<li class="disabled"><a class="f-connect" title="Connect to selected host via VNC" href="#"><i class="fa fa-eye"></i><span> Connect</span></a></li>
@@ -47,31 +47,31 @@
 					<li class="disabled"><a class="f-hostinfo" title="Show host information" href="#"><i class="fa fa-info"></i><span> Info</span></a></li>
 				</ul>
 			</section>
-			
+
 			<div id="drop_accountList" data-dropdown-content class="f-dropdown content small" aria-hidden="true" tabindex="-1">
 			  <div id="accountList"></div>
-				
-				<a href="#" class="button small secondary" id="accountList_addAccount"><i class="fa fa-sign-in"></i> Add Account</a>
+
+				<a href="#" class="button small secondary" id="accountList_addAccount"><i class="fa fa-sign-in"></i> Add Server</a>
 			</div>
 		</nav>
-	
+
 		<div id="mainContainer">
 		  <table id="contentView"></table>
 		</div>
 	</div>
-	
-	
-	
-	
-	<!-- Add Account Dialog -->
-	
+
+
+
+
+	<!-- Add Server Dialog -->
+
 	<div id="modal_addAccount" class="reveal-modal" data-reveal>
-		
+
 		<form>
 		  <div class="row">
 		    <div class="small-12 columns">
-		      <h3>Add account</h3>
-	
+		      <h3>Add Server</h3>
+
     			<div data-alert class="alert-box alert">
     			  <span>An error has occured.</span><a href="#" class="close">&times;</a>
     			</div>
@@ -111,23 +111,23 @@
 		      </label>
 		    </div>
 		  </div>
-      
+
 		  <div class="row">
 		    <div class="small-12 columns">
 		      <a href="#" class="button success f-ok-btn"><i class="fa fa-check"></i> OK</a>
 		      <a href="#" class="button f-trash-btn pull-right"><i class="fa fa-trash"></i> Delete</a>
 		    </div>
 		  </div>
-			
+
 		</form>
-		
+
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
-	
-	
-	
+
+
+
 	<!-- Preferences Dialog -->
-	
+
 	<div id="modal_preferences" class="reveal-modal" data-reveal>
 		<form>
 		  <div class="row">
@@ -159,8 +159,9 @@
 		  </div>
 
 		  <div class="row">
-		    <div class="small-12 columns" id="autoUpdater_info">
-		      No update information available.
+		    <div class="small-12 columns" >
+					<p><i class="fa fa-info-circle"></i> 
+		      <span id="autoUpdater_info">No update information available.</span></p>
 		    </div>
 		  </div>
 
@@ -170,51 +171,51 @@
 		      <a href="#" class="button f-closemodal-btn"><i class="fa fa-cancel"></i> Cancel</a>
 		    </div>
 		  </div>
-		
+
 		</form>
-	
+
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
-	
-	
-	
-	
+
+
+
+
 	<!-- Host Info Dialog -->
-	
+
 	<div id="modal_hostInfo" class="reveal-modal" data-reveal>
     <h3>Host info</h3>
-    
+
     <div class="f-info"></div>
-    
+
     <div>
       Comment:
       <textarea class="f-comment"></textarea>
     </div>
-    
+
     <div><a href="#" class="button success f-closemodal-btn"><i class="fa fa-check"></i> OK</a></div>
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
-	
-	
-	
-	
+
+
+
+
 	<!-- Connection list Dialog -->
-	
+
 	<div id="modal_connectionList" class="reveal-modal" data-reveal>
     <h3>Open connections</h3>
-    
+
     <table class="f-tbl" style="width:100%"><thead>
       <tr><th style="width:60px;"></th><th>Port</th><th>Server</th><th>Host</th><th>Status</th></tr>
     </thead><tbody></tbody></table>
-    
+
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
-	
-	
-  
-	
+
+
+
+
 	<!-- Auto Update Downloading Dialog -->
-	
+
 	<div id="modal_autoUpdater" class="reveal-modal" data-reveal>
     <h3><i class="fa fa-exclamation-triangle"></i> Downloading update ...</h3>
     <div class="f-msg"></div>
@@ -222,19 +223,19 @@
       <span class="meter" style="width: 0%"></span>
     </div>
 	</div>
-	
-  
-	
+
+
+
 	<!-- Error Dialog -->
-	
+
 	<div id="modal_error" class="reveal-modal" data-reveal>
     <h3><i class="fa fa-exclamation-triangle"></i> Error</h3>
     <div class="f-msg"></div>
     <div><a href="#" class="button success f-closemodal-btn"><i class="fa fa-check"></i> OK</a></div>
 	  <a class="close-reveal-modal">&#215;</a>
 	</div>
-	
-	
+
+
   <script>
     $(document).foundation();
 		App.MainWindow.initApp();
